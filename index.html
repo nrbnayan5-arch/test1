@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Expense Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Title Bar -->
+    <div class="title-bar">
+        <!-- Mobile menu button (visible on small screens) - moved to left -->
+        <button id="mobileMenuBtn" class="mobile-menu-btn" aria-label="Open menu">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="title-container">
+            <h1 class="app-title">
+                <i class="fas fa-chart-line"></i>
+                <span class="app-title-long">Monthly Expenses Tracker</span>
+                <span class="app-title-short">Expense Tracker</span>
+            </h1>
+            <div class="title-controls">
+                <div class="date-picker-wrapper">
+                    <button id="datePickerBtn" class="date-picker-btn" title="Select date range">
+                        <i class="fas fa-calendar"></i>
+                        <span id="datePickerDisplay">Jan 1 - Jan 31, 2025</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div id="datePickerDropdown" class="date-picker-dropdown">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                <button id="setBudgetBtn" class="budget-set-btn" title="Set budget for date range">
+                    <i class="fas fa-wallet"></i> <span class="budget-btn-text">Set Budget</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="title-bar-menu">
+            <button class="title-bar-btn" id="profileBtn" title="Profile">
+                <i class="fas fa-user-circle"></i> <span id="userNameDisplay">Profile</span>
+            </button>
+            <button class="title-bar-btn" title="Export">
+                <i class="fas fa-download"></i> Export
+            </button>
+            <button class="title-bar-btn" title="Settings">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+            <button class="title-bar-btn" title="About">
+                <i class="fas fa-info-circle"></i> About
+            </button>
+            <button class="title-bar-btn" id="signOutBtn" title="Sign Out" style="color: #dc3545;">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Side Menu -->
+    <div id="mobileSideMenu" class="mobile-side-menu" aria-hidden="true">
+        <div class="mobile-side-overlay" id="mobileSideOverlay"></div>
+        <nav class="mobile-side-nav" role="navigation" aria-label="Main menu">
+            <div class="mobile-side-header">
+                <div class="mobile-profile-menu" id="mobileProfileMenu">
+                    <div class="mobile-profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="mobile-profile-details">
+                        <div class="mobile-profile-name" id="mobileProfileName">User</div>
+                        <div class="mobile-profile-email" id="mobileProfileEmail">user@example.com</div>
+                        <div class="mobile-profile-stats"><span id="mobileTotalTransactions">0</span> transactions</div>
+                    </div>
+                    <button id="closeMobileMenu" class="mobile-close-btn" aria-label="Close menu"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <ul>
+                <!-- profile moved to header block -->
+                <li><button class="mobile-menu-item" id="mobileExportBtn"><i class="fas fa-download"></i> Export</button></li>
+                <li><button class="mobile-menu-item" id="mobileSettingsBtn"><i class="fas fa-cog"></i> Settings</button></li>
+                <li><button class="mobile-menu-item" id="mobileAboutBtn"><i class="fas fa-info-circle"></i> About</button></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Mobile Full-Screen Modals -->
+    <!-- Mobile Profile Screen -->
+    <div id="mobileProfileScreen" class="mobile-full-screen" aria-hidden="true">
+        <div class="mobile-screen-header">
+            <h2><i class="fas fa-user-circle"></i> Profile</h2>
+            <button id="closeMobileProfileScreen" class="mobile-screen-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mobile-screen-content">
+            <div class="profile-info-mobile">
+                <div class="profile-avatar-mobile">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="profile-details-mobile">
+                    <p><strong>User ID:</strong> <span id="userIdMobile">user-001</span></p>
+                    <p><strong>Email:</strong> <span id="userEmailMobile">user@example.com</span></p>
+                    <p><strong>Member Since:</strong> <span id="memberSinceMobile">January 2025</span></p>
+                    <p><strong>Total Transactions:</strong> <span id="totalTransactionsMobile">0</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Settings Screen -->
+    <div id="mobileSettingsScreen" class="mobile-full-screen" aria-hidden="true">
+        <div class="mobile-screen-header">
+            <h2><i class="fas fa-cog"></i> Settings</h2>
+            <button id="closeMobileSettingsScreen" class="mobile-screen-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mobile-screen-content">
+            <form id="mobileSettingsForm" class="mobile-settings-form">
+                <div class="settings-group">
+                    <label for="mobilebudgetInput">Monthly Budget</label>
+                    <div class="input-group">
+                        <span>$</span>
+                        <input type="number" id="mobilebudgetInput" placeholder="3000" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="mobilecurrencySelect">Currency</label>
+                    <select id="mobilecurrencySelect">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="INR">INR (₹)</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <label for="mobilethemeSelect">Theme</label>
+                    <select id="mobilethemeSelect">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <label>
+                        <input type="checkbox" id="mobilenotificationsCheckbox">
+                        Enable Notifications
+                    </label>
+                </div>
+
+                <div class="mobile-settings-actions">
+                    <button type="submit" class="btn-primary">Save Settings</button>
+                    <button type="button" id="mobileResetSettingsBtn" class="btn-secondary">Reset to Default</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile Export Screen -->
+    <div id="mobileExportScreen" class="mobile-full-screen" aria-hidden="true">
+        <div class="mobile-screen-header">
+            <h2><i class="fas fa-download"></i> Export Data</h2>
+            <button id="closeMobileExportScreen" class="mobile-screen-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mobile-screen-content">
+            <form id="mobileExportForm" class="mobile-export-form-compact">
+                <div class="export-row-mobile">
+                    <div class="export-date-col-mobile">
+                        <label for="mobileExportFromDate">From</label>
+                        <input type="date" id="mobileExportFromDate">
+                    </div>
+                    <div class="export-date-col-mobile">
+                        <label for="mobileExportToDate">To</label>
+                        <input type="date" id="mobileExportToDate">
+                    </div>
+                </div>
+                
+                <div class="export-format-row-mobile">
+                    <label class="export-radio-label-mobile">
+                        <input type="radio" name="mobileExportFormat" value="csv" checked>
+                        CSV
+                    </label>
+                    <label class="export-radio-label-mobile">
+                        <input type="radio" name="mobileExportFormat" value="json">
+                        JSON
+                    </label>
+                    <label class="export-radio-label-mobile">
+                        <input type="radio" name="mobileExportFormat" value="excel">
+                        Excel
+                    </label>
+                </div>
+                
+                <button type="button" id="mobileExportBtn2" class="btn-primary export-btn-mobile">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mobile About Screen -->
+    <div id="mobileAboutScreen" class="mobile-full-screen" aria-hidden="true">
+        <div class="mobile-screen-header">
+            <h2><i class="fas fa-info-circle"></i> About</h2>
+            <button id="closeMobileAboutScreen" class="mobile-screen-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mobile-screen-content about-content-mobile">
+            <h4>Monthly Expense Tracker</h4>
+            <p><strong>Version:</strong> 1.0.0</p>
+            <p class="about-description">
+                A simple, intuitive expense tracking application designed to help you manage your finances and stay within budget.
+            </p>
+            <h5>Features</h5>
+            <ul class="features-list-mobile">
+                <li>Track daily expenses and income</li>
+                <li>Categorize transactions</li>
+                <li>Monitor budget progress</li>
+                <li>7-day spending chart</li>
+                <li>Export data in multiple formats</li>
+                <li>Mobile-responsive design</li>
+            </ul>
+            <p class="about-footer">
+                <small>&copy; 2025 Monthly Expense Tracker. All rights reserved.</small>
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="left-sidebar">
+            <!-- 7-Day Chart -->
+            <section class="card">
+                <h2 class="card-title"><i class="fas fa-chart-bar"></i> Daily Expenses</h2>
+                <div class="chart-container">
+                    <canvas id="sevenDayChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Progress Bar -->
+            <section class="card">
+                <h2 class="card-title budget-overview-title"><i class="fas fa-tasks"></i> Budget Overview</h2>
+                <div class="budget-overview">
+                    <div class="progress-container">
+                            <div class="progress-label">
+                                <span class="budget-label"><i class="fas fa-tasks"></i> Budget Overview</span>
+                            </div>
+                            <div class="progress-bar-wrapper">
+                                <div class="progress-bar" id="progressBar"></div>
+                                <span id="progressBarPercent">0%</span>
+                                <!-- amount values shown below the bar -->
+                            </div>
+                            <div class="progress-values">
+                                <div class="progress-value-left">
+                                    <span class="small-label">Remaining Balance</span>
+                                    <span class="value" id="remainingBelow">$0.00</span>
+                                </div>
+                                <div class="progress-value-right">
+                                    <span class="small-label">Spend</span>
+                                    <span class="value" id="spendBelow">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </section>
+
+            <!-- Summary Table -->
+            <section class="card summary-card">
+                <h2 class="card-title"><i class="fas fa-table"></i> Category Summary</h2>
+                <div class="table-scroll">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>Category</th>
+                                <th>Total Spend</th>
+                                <th>Average</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <tr>
+                                <td colspan="5" class="empty-message">No data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </aside>
+
+        <!-- Right Main Content -->
+        <main class="main-content">
+            <!-- Main Transactions Table -->
+            <section class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-list"></i> Daily Spending</h2>
+                    <div class="card-header-actions">
+                        <button id="filterBtn" class="btn-filter" title="Filter transactions">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                        <!-- Filter Popover -->
+                        <div id="filterPopover" class="filter-popover" aria-hidden="true">
+                            <div class="filter-header">
+                                <h3>Filter Transactions</h3>
+                                <button type="button" id="closeFilterBtn" class="filter-close" aria-label="Close filter">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <form id="filterForm">
+                                <div class="filter-row">
+                                    <label>From<br><input type="date" name="fromDate"></label>
+                                    <label>To<br><input type="date" name="toDate"></label>
+                                </div>
+                                <div class="filter-row">
+                                    <label>Category<br>
+                                        <select name="category">
+                                            <option value="">All</option>
+                                            <option>Food</option>
+                                            <option>Transportation</option>
+                                            <option>Entertainment</option>
+                                            <option>Utilities</option>
+                                            <option>Healthcare</option>
+                                            <option>Shopping</option>
+                                            <option>Salary</option>
+                                            <option>Other</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div class="filter-row">
+                                    <label>Type<br>
+                                        <select name="type">
+                                            <option value="">All</option>
+                                            <option value="income">Income</option>
+                                            <option value="expense">Expense</option>
+                                        </select>
+                                    </label>
+                                    <label>Min<br><input type="number" name="minAmount" step="0.01"></label>
+                                    <label>Max<br><input type="number" name="maxAmount" step="0.01"></label>
+                                </div>
+                                <div class="filter-actions">
+                                    <button type="button" id="applyFilter" class="btn-primary">Apply</button>
+                                    <button type="button" id="clearFilter" class="btn-secondary">Clear</button>
+                                </div>
+                            </form>
+                        </div>
+                        <button id="addExpenseBtn" class="btn-add-icon" title="Add new expense">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table class="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Expense</th>
+                                <th>Amount</th>
+                                <th>Category</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTableBody">
+                            <tr>
+                                <td colspan="5" class="empty-message">No transactions yet. Add one to get started!</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="addExpenseModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Expense</h3>
+                <button id="closeModalBtn" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addExpenseForm" class="expense-form">
+                <div class="form-group full-width">
+                    <label for="expenseDescription">Expense Name</label>
+                    <input type="text" id="expenseDescription" placeholder="e.g., Lunch at restaurant" required>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="expenseAmount">Amount</label>
+                    <input type="number" id="expenseAmount" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="expenseNote">Note (Optional)</label>
+                    <input type="text" id="expenseNote" placeholder="Add any notes about this expense">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expenseCategory">Category</label>
+                        <select id="expenseCategory" required>
+                            <option value="Food">Food</option>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expenseDate">Date</label>
+                        <input type="date" id="expenseDate" required>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Add Expense</button>
+                    <button type="submit" id="addAnotherBtn" class="btn-secondary">Add Another</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" id="editOption">
+            <i class="fas fa-edit"></i> Edit
+        </div>
+        <div class="context-menu-item" id="deleteOption">
+            <i class="fas fa-trash"></i> Delete
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" id="undoOption">
+            <i class="fas fa-undo"></i> Undo
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button id="closeSettingsBtn" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="settingsForm" class="settings-form">
+                <div class="settings-group">
+                    <label for="budgetInput">Monthly Budget</label>
+                    <div class="input-group">
+                        <span>$</span>
+                        <input type="number" id="budgetInput" placeholder="3000" step="0.01" min="0">
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <label for="currencySelect">Currency</label>
+                    <select id="currencySelect">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="INR">INR (₹)</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <label for="themeSelect">Theme</label>
+                    <select id="themeSelect">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <label>
+                        <input type="checkbox" id="notificationsCheckbox">
+                        Enable Notifications
+                    </label>
+                </div>
+
+                <div class="settings-actions">
+                    <button type="submit" id="saveSettingsBtn" class="btn-primary">Save Settings</button>
+                    <button type="button" id="resetSettingsBtn" class="btn-secondary">Reset to Default</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Budget Modal -->
+    <div id="budgetModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Set Budget</h3>
+                <button id="closeBudgetBtn" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="budgetForm" class="settings-form">
+                <div class="settings-group">
+                    <label for="budgetDateRange">Date Range</label>
+                    <input type="text" id="budgetDateRange" placeholder="e.g., Jan 1 - Jan 31, 2025" required>
+                    <small style="color: #718096; font-size: 0.85rem; margin-top: 0.25rem; display: block;">Format: Month Day - Month Day, Year</small>
+                </div>
+
+                <div class="settings-group">
+                    <label for="budgetAmountInput">Budget Amount</label>
+                    <div class="input-group">
+                        <span>$</span>
+                        <input type="number" id="budgetAmountInput" placeholder="3000" step="0.01" min="0" required>
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button type="submit" class="btn-primary">Save Budget</button>
+                    <button type="button" id="cancelBudgetBtn" class="btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Profile</h3>
+                <button id="closeProfileBtn" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="profile-details">
+                        <p><strong>User ID:</strong> <span id="userId">user-001</span></p>
+                        <p><strong>Email:</strong> <span id="userEmail">user@example.com</span></p>
+                        <p><strong>Member Since:</strong> <span id="memberSince">January 2025</span></p>
+                        <p><strong>Total Transactions:</strong> <span id="totalTransactions">0</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal-overlay">
+        <div class="modal-content export-modal-content">
+            <div class="modal-header">
+                <h3>Export Data</h3>
+                <button id="closeExportBtn" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="exportForm" class="export-form-compact">
+                <div class="export-row">
+                    <div class="export-date-col">
+                        <label for="exportFromDate">From</label>
+                        <input type="date" id="exportFromDate">
+                    </div>
+                    <div class="export-date-col">
+                        <label for="exportToDate">To</label>
+                        <input type="date" id="exportToDate">
+                    </div>
+                </div>
+                
+                <div class="export-format-row">
+                    <label class="export-radio-label">
+                        <input type="radio" name="exportFormat" value="csv" checked>
+                        CSV
+                    </label>
+                    <label class="export-radio-label">
+                        <input type="radio" name="exportFormat" value="json">
+                        JSON
+                    </label>
+                    <label class="export-radio-label">
+                        <input type="radio" name="exportFormat" value="excel">
+                        Excel
+                    </label>
+                </div>
+                
+                <button type="button" id="exportBtn" class="btn-primary export-btn-full">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>About</h3>
+                <button id="closeAboutBtn" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body about-content">
+                <h4>Monthly Expense Tracker</h4>
+                <p><strong>Version:</strong> 1.0.0</p>
+                <p class="about-description">
+                    A simple, intuitive expense tracking application designed to help you manage your finances and stay within budget.
+                </p>
+                <h5>Features</h5>
+                <ul class="features-list">
+                    <li>Track daily expenses and income</li>
+                    <li>Categorize transactions</li>
+                    <li>Monitor budget progress</li>
+                    <li>7-day spending chart</li>
+                    <li>Export data in multiple formats</li>
+                    <li>Mobile-responsive design</li>
+                </ul>
+                <p class="about-footer">
+                    <small>&copy; 2025 Monthly Expense Tracker. All rights reserved.</small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
